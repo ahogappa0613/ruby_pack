@@ -2,6 +2,8 @@ require 'csv'
 
 p 'hello world!!'
 
+p RUBY_VERSION
+
 csv_text = <<~CSV_TEXT
   Ruby,1995
   Rust,2010

@@ -1,5 +1,5 @@
 [package]
-name = "ruby_build_test"
+name = "ruby_pack"
 version = "0.1.0"
 edition = "2018"
 
@@ -7,7 +7,6 @@ edition = "2018"
 
 [dependencies]
 once_cell="1.8.0"
-rutie="0.8.2"
+rutie={path="../rutie"}
 dlopen = "0.1"
-dlopen_derive = "0.1.4"
 tempfile = "3.2.0"

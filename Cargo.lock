@@ -149,11 +149,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "ruby_build_test"
+name = "ruby_pack"
 version = "0.1.0"
 dependencies = [
  "dlopen",
- "dlopen_derive",
  "once_cell",
  "rutie",
  "tempfile",
@@ -161,9 +160,7 @@ dependencies = [
 
 [[package]]
 name = "rutie"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "678217ed742ca819057a79c0146703d1278afbb38896eb0283c410a6cab7c28c"
+version = "0.8.3"
 dependencies = [
  "lazy_static",
  "libc",

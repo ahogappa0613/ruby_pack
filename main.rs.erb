@@ -1,14 +1,12 @@
-use dlopen::raw::Library;
 use once_cell::sync::Lazy;
 use rutie::{Class, Encoding, Object, RString, VM};
+use dlopen::raw::Library;
 use std::{io::Write, path::Path};
 use tempfile::NamedTempFile;
 
 static mut FILES: Lazy<Vec<&[u8]>> = Lazy::new(|| {
     vec![
-        include_bytes!("/usr/local/lib/ruby/3.1.0/arm64-darwin21/date_core.bundle"),
-        include_bytes!("/usr/local/lib/ruby/3.1.0/arm64-darwin21/stringio.bundle"),
-        include_bytes!("/usr/local/lib/ruby/3.1.0/arm64-darwin21/strscan.bundle"),
+        <%= include_bytes_paths %>
     ]
 });
 
@@ -16,7 +14,9 @@ fn main() {
     unsafe {
         VM::init();
         VM::init_loadpath();
-        let loaded_lib_names = vec!["date_core.bundle", "stringio.bundle", "strscan.bundle"];
+        let loaded_lib_names = vec![
+            <%= lib_names %>
+        ];
         let mut libs: Vec<Library> = vec![];
         for (i, lib_file) in FILES.iter().enumerate() {
             let mut file = NamedTempFile::new().unwrap();
@@ -32,7 +32,7 @@ fn main() {
         }
 
         let iseq_class = Class::from_existing("RubyVM").get_nested_class("InstructionSequence");
-        let file = include_bytes!(".././csv.rb.cat.rbin");
+        let file = include_bytes!("../<%= rbin_path %>");
         let src = RString::from_bytes(file, &Encoding::us_ascii());
         let iseq = iseq_class.send("load_from_binary", &[src.to_any_object()]);
         iseq.send("eval", &[]);
