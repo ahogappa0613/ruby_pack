@@ -1,10 +1,10 @@
 # ruby実行時からすでに読み込まれているファイルを記憶しておく
-alredy_libs = $".dup
+already_libs = $".dup
 require ARGV[0]
 
 # .soで読み込まれているので.bundleに変更する
-lib_files = ($" - alredy_libs).grep(/.*\.so$/).map { _1.gsub(/\.so/, '.bundle') }
-ruby_files = ($" - alredy_libs).grep(/.*\.rb$/)
+lib_files = ($" - already_libs).grep(/.*\.so$/).map { _1.gsub(/\.so/, '.bundle') }
+ruby_files = ($" - already_libs).grep(/.*\.rb$/)
 
 # 読み込まれているrubyスクリプトを読み込んで一枚のスクリプトファイルにする
 # 一部読み込まなくて良いものがあるのではじく

@@ -2,3 +2,4 @@
 .DS_Store
 *.cat.rb*
 sample.csv
+.vscode
