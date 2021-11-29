@@ -7,6 +7,6 @@ edition = "2018"
 
 [dependencies]
 once_cell="1.8.0"
-rutie={path="../rutie"}
+rutie="0.8.3"
 dlopen = "0.1"
 tempfile = "3.2.0"
