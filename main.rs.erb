@@ -1,34 +1,40 @@
 use dlopen::raw::Library;
 use once_cell::sync::Lazy;
 use rutie::{Class, Encoding, Object, RString, VM};
-use std::{io::Write, path::Path};
+use std::io::Write;
+use std::thread;
 use tempfile::NamedTempFile;
 
-static mut FILES: Lazy<Vec<&[u8]>> = Lazy::new(|| {
+static FILES: Lazy<Vec<&[u8]>> = Lazy::new(|| {
     vec![
         <%= include_bytes_paths %>
     ]
 });
 
+static mut LIBS: Lazy<Vec<(Library, &str)>> = Lazy::new(|| vec![]);
+
 fn main() {
     unsafe {
         VM::init();
         VM::init_loadpath();
-        let loaded_lib_names = vec![
-            <%= lib_names %>
-        ];
-        let mut libs: Vec<Library> = vec![];
-        for (i, lib_file) in FILES.iter().enumerate() {
-            let mut file = NamedTempFile::new().unwrap();
-            file.write_all(*lib_file).unwrap();
-            let lib = Library::open(file.path()).unwrap();
-            let path = Path::new(loaded_lib_names[i]);
-            let file_name = path.file_stem().unwrap();
-            let init_func_name = format!("{}{}", "Init_", file_name.to_str().unwrap());
+        let mut threads = vec![];
+        for (i, file) in FILES.iter().enumerate() {
+            let loaded_lib_names = vec![<%= lib_names %>];
+            threads.push(thread::spawn(move || {
+                let mut temp_file = NamedTempFile::new().unwrap();
+                temp_file.write_all(file).unwrap();
+                let lib = Library::open(temp_file.path()).unwrap();
+                LIBS.push((lib, loaded_lib_names[i]));
+                temp_file.close().unwrap();
+            }));
+        }
+        for thread in threads {
+            let _ = thread.join();
+        }
+        for (lib, name) in LIBS.iter() {
+            let init_func_name = format!("{}{}", "Init_", name);
             let func: unsafe extern "C" fn() = lib.symbol(&init_func_name).unwrap();
-            libs.push(lib);
             func();
-            file.close().unwrap();
         }
 
         let iseq_class = Class::from_existing("RubyVM").get_nested_class("InstructionSequence");

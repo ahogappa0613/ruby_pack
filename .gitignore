@@ -3,3 +3,4 @@
 *.cat.rb*
 sample.csv
 .vscode
+main.rs

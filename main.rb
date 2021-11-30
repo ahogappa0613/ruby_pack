@@ -29,7 +29,7 @@ File.binwrite("#{ARGV[0]}.cat.rbin", bin_iseq)
 # erbを使ってrustのコードを生成する
 require 'erb'
 include_bytes_paths = lib_files.map { "include_bytes!(\"#{RbConfig::CONFIG['rubyarchdir']}/#{_1}\")" }.join(', ')
-lib_names = lib_files.map { "\"#{_1}\"" }.join(', ')
+lib_names = lib_files.map { "\"#{_1}\"" }.map { _1.gsub(/\.bundle/, '') }.join(', ')
 rbin_path = "#{ARGV[0]}.cat.rbin"
 
 File.open('./src/main.rs', 'w') { _1.print(ERB.new(File.open('./main.rs.erb', 'r').read).result(binding)) }
