@@ -2,40 +2,34 @@ use dlopen::raw::Library;
 use once_cell::sync::Lazy;
 use rutie::{Class, Encoding, Object, RString, VM};
 use std::io::Write;
-use std::thread;
 use tempfile::NamedTempFile;
 
 static FILES: Lazy<Vec<&[u8]>> = Lazy::new(|| {
     vec![
-        <%= include_bytes_paths %>
+        <% include_bytes_paths.each do |path| %><%= path %>,
+        <% end %>
     ]
 });
-
-static mut LIBS: Lazy<Vec<(Library, &str)>> = Lazy::new(|| vec![]);
 
 fn main() {
     unsafe {
         VM::init();
         VM::init_loadpath();
-        let mut threads = vec![];
-        for (i, file) in FILES.iter().enumerate() {
-            let loaded_lib_names = vec![<%= lib_names %>];
-            threads.push(thread::spawn(move || {
+        let loaded_lib_names = vec![<%= lib_names %>];
+        let _libs = FILES
+            .iter()
+            .enumerate()
+            .map(|(i, file)| {
                 let mut temp_file = NamedTempFile::new().unwrap();
                 temp_file.write_all(file).unwrap();
                 let lib = Library::open(temp_file.path()).unwrap();
-                LIBS.push((lib, loaded_lib_names[i]));
+                let init_func_name = format!("{}{}", "Init_", loaded_lib_names[i]);
+                let func: unsafe extern "C" fn() = lib.symbol(&init_func_name).unwrap();
+                func();
                 temp_file.close().unwrap();
-            }));
-        }
-        for thread in threads {
-            let _ = thread.join();
-        }
-        for (lib, name) in LIBS.iter() {
-            let init_func_name = format!("{}{}", "Init_", name);
-            let func: unsafe extern "C" fn() = lib.symbol(&init_func_name).unwrap();
-            func();
-        }
+                return lib;
+            })
+            .collect::<Vec<Library>>();
 
         let iseq_class = Class::from_existing("RubyVM").get_nested_class("InstructionSequence");
         let file = include_bytes!("../<%= rbin_path %>");
